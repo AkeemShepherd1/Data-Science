@@ -1,0 +1,226 @@
+---
+title: "Assignment 5 CA"
+author: "Akeem Shepherd"
+date: "10/31/2021"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+setwd("C:/USERS/OWNER-PC/Downloads/Lab5_Materials (1)")
+getwd()
+require(data.table)
+#install.packages("tidycensus")
+require(tidycensus)
+census_api_key("aa512886c5449a582d837da8d3a07af66a043fe5")
+
+census_data <- load_variables(2010, "sf1", cache=T)
+View(census_data)
+
+fwrite(census_data, "census_variables.csv")
+
+vars <- c(tpop = 'P001001',
+          medage = 'P013001',
+          wpop = 'P003002',
+          bpop = 'P003003',
+          apop = 'P003005',
+          hpop = 'P004003')
+View(vars)
+
+CA_df <- get_decennial(state = "ca", 
+                geography = "county",
+                variables = vars,
+                geometry = T,
+                output = "wide")
+View(CA_df)
+
+plot(CA_df)
+plot(CA_df["tpop"])
+plot(CA_df["bpop"])
+plot(CA_df["medage"])
+CA_df$geometry <- NULL
+
+CA_df <- as.data.frame(CA_df)
+
+CA_df$wpct <- (CA_df$wpop / CA_df$tpop) *100
+CA_df$bpct <- (CA_df$bpop / CA_df$tpop) *100
+CA_df$apct <- (CA_df$apop / CA_df$tpop) *100
+CA_df$hpct <- (CA_df$hpop / CA_df$tpop) *100
+
+###Compute Simpson's Diversity Index **D = ((SUM n(n-1))/N(N-1))**
+###Higher value indicates higher diversity
+
+CA_df$race_div <- 1 - (((CA_df$wpop*(CA_df$wpop-1))+
+                      (CA_df$bpop*(CA_df$bpop-1))+
+                      (CA_df$hpop*(CA_df$hpop-1))+
+                      (CA_df$apop*(CA_df$apop-1)))/
+                     (CA_df$tpop*(CA_df$tpop-1)))
+
+head(CA_df)
+summary(CA_df$race_div)
+
+###read in urban-rural continuum codes:
+###https://www.ers.usda.gov/data-products/rural-urban-continuum-codes/documentation/
+
+urban_class <- fread("ruralurbancodes.csv", 
+                   stringsAsFactors = F, 
+                   data.table = F, 
+                   colClasses = list(character=c("FIPS")))
+
+View(urban_class)
+urban_class<-urban_class[,c(-5)]
+
+###Create two categorical variables
+urban_class$Metro <- ifelse(urban_class$RUCC_2013 > 0 & urban_class$RUCC_2013 < 4, "Metro", "NonMetro")
+
+urban_class$Met_suburb <- ifelse(urban_class$RUCC_2013 > 0 & urban_class$RUCC_2013 < 4,"Metro","Suburban")
+urban_class$Met_suburb <- ifelse(urban_class$RUCC_2013 > 6,"NonMetro",urban_class$Met_suburb)
+
+table(urban_class$Metro)
+table(urban_class$Met_suburb)
+
+###create State,County Fips code in NY_df for join with urban class variables
+head(CA_df)
+head(urban_class)
+summary(CA_df)
+summary(urban_class)
+CA_df_metro <- merge(CA_df,urban_class,
+                     by.x = "GEOID", by.y = "FIPS",
+                     all.x = T)
+head(CA_df_metro)
+
+####Research Question: Are Metro Areas more Diverse and different in Age structure relative to 
+####NonMetropolitan and Suburban Areas?  Diversity (continuous), Age (Continuous), Metro Class (Categorical)
+
+####Step 1. Explore variables
+
+hist(CA_df_metro$race_div)
+hist(CA_df_metro$medage)
+
+summary(CA_df_metro$race_div)
+summary(CA_df_metro$medage)
+
+prop.table(table(CA_df_metro$Metro))
+prop.table(table(CA_df_metro$Met_suburb))
+
+
+####Step 2. Visualize the Relationships
+require(ggplot2)
+
+bivar2catRace<-ggplot(CA_df_metro, 
+                      aes(x = Metro, 
+                          y = race_div, 
+                          group = Metro, 
+                          color = Metro, 
+                          fill = Metro)) + 
+  geom_boxplot() + 
+  labs(title="Boxplots", 
+       subtitle= "Racial Diversity by Metro Classification",
+       y="Racial Diversity Score", 
+       x="Metro Classification") +
+  scale_colour_brewer(palette = "Set3")
+plot(bivar2catRace)
+
+bivar2catAge<-ggplot(CA_df_metro, 
+                     aes(x = Metro, 
+                         y = medage, 
+                         group = Metro, 
+                         color = Metro, 
+                         fill = Metro)) + 
+  geom_boxplot() + 
+  labs(title="Boxplots", 
+       subtitle= "Median Age by Metro Classification",
+       y="Median Age", 
+       x="Metro Classification") +
+  scale_colour_brewer(palette = "Set3")
+plot(bivar2catAge)
+
+
+#### category comparisons
+
+bivar3catRace<-ggplot(CA_df_metro, 
+                      aes(x = Met_suburb, 
+                          y = race_div, 
+                          group = Met_suburb, 
+                          color = Met_suburb, 
+                          fill = Met_suburb)) + 
+  geom_boxplot() + 
+  labs(title="Boxplots", 
+       subtitle= "Racial Diversity by Urban Classification",
+       y="Racial Diversity Score", 
+       x="Urban Classification") +
+  scale_colour_brewer(palette = "Set3")
+plot(bivar3catRace)
+
+bivar3catAge<-ggplot(CA_df_metro, 
+                     aes(x = Met_suburb, 
+                         y = medage, 
+                         group = Met_suburb, 
+                         color = Met_suburb, 
+                         fill = Met_suburb)) + 
+  geom_boxplot() + 
+  labs(title="Boxplots", 
+       subtitle= "Median Age by Urban Classification",
+       y="Median Age", 
+       x="Urban Classification") +
+  scale_colour_brewer(palette = "Set3")
+plot(bivar3catAge)
+
+
+#######################################################################################
+#######################################################################################
+###Statistical Tests of Association
+###Run a T-test to test for mean differences in racial diversity across 2 category Met classification
+
+Ttest_resultsRace <- t.test(CA_df_metro$race_div~CA_df_metro$Metro)
+Ttest_resultsAge <- t.test(CA_df_metro$medage ~ CA_df_metro$Metro)
+
+####View T-test Results
+Ttest_resultsRace
+Ttest_resultsAge
+
+
+####Run an Analysis of Variance to test for mean differences across 3 category "Met_suburb" variable
+ANOVA_ResultsRace <- aov(race_div ~ Met_suburb, data = CA_df_metro)
+ANOVA_ResultsAge <- aov(medage ~ Met_suburb, data = CA_df_metro)
+
+#### View Results of ANOVA
+summary(ANOVA_ResultsRace)
+summary(ANOVA_ResultsAge)
+
+
+#### Check for individual pairwise differences
+TukeyHSD(ANOVA_ResultsRace)
+TukeyHSD(ANOVA_ResultsAge)
+
+##########################################################################################################
+### Assignment #5 (In Rmarkdown):
+### Extract the variables to reporduce this analysis for the percent in poverty and the median income 
+### for counties in the state of CA.  Visualize the relationships across the same 2 category and 3 
+### category metro classficiation schemes and test to see if there are significant differences in the:
+### 1) % in poverty and 2) median income by those two classification schemes.  
+### 
+### Use the appropriate test based on the variable measurment.
+##########################################################################################################
+```
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
