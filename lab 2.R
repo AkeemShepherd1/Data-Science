@@ -1,4 +1,8 @@
-
+#use data to produce the following requirements requirments:
+##1) create the code to produce a table of total loss by county for the state of NY
+##2) Recreate the code to produce a table of total loss at the state level (aggregated to NY, NJ, CT in one table)
+##3) Create a table showing the most diverse counties in NY using the "race_divbg" variable (racial diversity index)
+##4) Write the new tables out to new .csv files
 ####read in parcel exposure to repeated tidal flooding information
 setwd("")
 require(data.table)
@@ -136,9 +140,5 @@ View(county_loss_w_name)
 fwrite(county_loss_w_name, "loss_totals_by_county_ny.csv")
                       
 
-####Assignment 2 (Due 09/20): 
-#### 1) Recreate the code to produce a table of total loss by county for the state of NJ 
-#### 2) Recreate the code to produce a table of total loss at the state level (aggregated to NY, NJ, CT in one table)
-#### 3) Create a table showing the most diverse counties in NY using the "race_divbg" variable (racial diversity index)
-#### 4) Write the new tables out to new .csv files
+
 
