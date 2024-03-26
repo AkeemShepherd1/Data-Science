@@ -1,0 +1,65 @@
+---
+title: "Untitled"
+output: pdf_document
+---
+
+``` {r setup, include = FALSE}
+Knitr::opts_chunks$set(echo=TRUE)
+
+data_loc <- "C:/Users/ashepherd/Downloads"
+
+setwd(data_loc)
+getwd()
+require(data.table) 
+
+VA_data<-fread("VA_blkgrp_econ_data.csv", 
+               stringsAsFactors = F, 
+               data.table = F)
+```
+
+```{r, summary}
+names(VA_data)
+head(VA_data)
+tail(VA_data)
+summary(VA_data)
+```
+
+```{r, percent}
+pct_comp <- function(x) {
+  pop <- VA_data$Totpopbg
+  (x/pop)*100
+}
+
+View(VA_data)
+
+
+for(i in 4:(ncol(VA_data))){
+  print(i)
+  pct_vars <- pct_comp(VA_data[i])
+  VA_data <- cbind(VA_data,pct_vars)
+  pct_vars<-NULL
+}
+
+names(VA_data)[6:9]<-c("HS_Grads","Ft_Employ","Public_Assist","Home_Owners")
+
+View(VA_data)
+
+summary(VA_data)
+```
+
+```{r, t-test}
+###T-test for mean differences
+
+VA_data$tot_pop_bin <- ifelse(VA_data$Totpopbg < median(VA_data$Totpopbg), 0, 1)
+table(VA_data$tot_pop_bin)
+names(VA_data)
+
+vars <- c("HS_Grads",
+         "Ft_Employ",
+         "Public_Assist",
+         "Home_Owners")
+
+lapply(VA_data[,c(vars)], 
+       function(x) t.test(x ~ VA_data$tot_pop_bin, 
+                          var.equal = TRUE))
+```
