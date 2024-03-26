@@ -1,0 +1,131 @@
+---
+title: "Assignment 4"
+author: "Akeem Shepherd"
+date: "10/7/2021"
+output: pdf_document
+---
+ A) Does age (medage16) appear to be associated with unemployment (pct_unemp)?
+### B) Does race (pct_white) appear to be assocaited with educational attainment (pct_BAdeg)?
+### C) Do these relationships appear to vary by population size (urban_class)?
+### 
+### To complete the HW 1) create an appropriate univariate plot to describe the distribution
+### of all 5 of the variables in the analysis, 2) Create a bivariate plot describing the
+### relationships of interest in A and B above, 3) Create a set of bivariate sub-plots for 
+### A and B faceted by population size.
+###
+###SUbmit your R-Script in markdown form (.rmd) as your Lab/HW 4 Assignment Deliverable.
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd("C:/Users/OWNER-PC/Downloads")
+getwd()
+list.files()
+require(data.table)
+library(ggplot2)
+
+mydata1 <- fread("Lab4a_data.csv", 
+                 stringsAsFactors = F, 
+                 data.table = F)
+
+mydata2 <- fread("Lab4b_data.csv", 
+                 stringsAsFactors = F, 
+                 data.table = F)
+
+names(mydata1)
+names(mydata2)
+head(mydata1)
+head(mydata2)
+
+mydata <- merge(mydata1,
+                mydata2, 
+                by = "id")
+
+names(mydata)
+head(mydata)
+rm(mydata1,mydata2)
+
+mydata <- mydata[,c(3,5,7,9,11,13,15,17,19)]
+
+names(mydata)
+head(mydata)
+
+```
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+####Clean and manage data
+for(i in 2:8){
+  print(i)
+  pct_vars <- (mydata[i]/mydata$Totpop16)*100
+  mydata <- cbind(mydata,pct_vars)
+  pct_vars<-NULL
+}
+names(mydata)[10:15] <- c("pct_male", "pct_female", "pct_medage16", "pct_white","pct_black","pct_BAdeg","pct_unemp")
+head(mydata)
+
+```
+
+
+```{r, EDA}
+####Exploratory Data Analysis (EDA) and simple plots in R
+####Univariate
+summary(mydata)
+summary(mydata$medinc16)
+
+mydata$BA_binary <- ifelse(mydata$BAdeg16<mean(mydata$BAdeg16),
+                           "Below Avg. % BA","Above Avg. % BA")
+mydata$INC_binary <- ifelse(mydata$medinc16<mean(mydata$medinc16),
+                            "Below Avg. Med Income","Above Avg Med Income")
+
+table(mydata$BA_binary)
+prop.table(table(mydata$BA_binary))
+prop.table(table(mydata$BA_binary,mydata$INC_binary))
+
+table <- table(mydata$BA_binary)
+
+mydata$BA_binary_num <- ifelse(mydata$pct_BAdeg<mean(mydata$pct_BAdeg),
+                           0,1)
+
+hist(mydata$BA_binary_num)
+
+hist(mydata$pct_white)
+
+barplot(table)
+
+barplot(table, 
+        main="Frequency of Respondents Above/Below Avg. BA Degree Rate",
+        ylab = "Frequency", 
+        xlab = "Group")
+
+
+```
+
+```{r, EDA}
+####Exploratory Data Analysis (EDA) and simple plots in R
+####Univariate
+summary(mydata$BAdeg16)
+summary(mydata$medinc16)
+
+mydata$BA_binary <- ifelse(mydata$BAdeg16<mean(mydata$BAdeg16),
+                           "Below Avg. % BA","Above Avg. % BA")
+mydata$INC_binary <- ifelse(mydata$medinc16<mean(mydata$medinc16),
+                            "Below Avg. Med Income","Above Avg Med Income")
+
+table(mydata$BA_binary)
+prop.table(table(mydata$BA_binary))
+prop.table(table(mydata$BA_binary,mydata$INC_binary))
+
+table <- table(mydata$BA_binary)
+
+mydata$BA_binary_num <- ifelse(mydata$pct_BAdeg<mean(mydata$pct_BAdeg),
+                           0,1)
+
+hist(mydata$BA_binary_num)
+
+hist(mydata$pct_white)
+
+barplot(table)
+
+barplot(table, 
+        main="Frequency of Respondents Above/Below Avg. BA Degree Rate",
+        ylab = "Frequency", 
+        xlab = "Group")
+```
