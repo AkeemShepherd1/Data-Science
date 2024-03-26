@@ -1,0 +1,149 @@
+---
+title: "Marco's ARIMA Method"
+author: "Akeem"
+date: "11/5/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library('forecast')
+library('dplyr')
+library('tidyverse')
+library('tseries')
+#Here lays the steps to ARIMA: the second and third step post data preparation that is model fittin and evaluation. 
+
+# Load your time series data (replace 'your_data.csv' with your data file)
+
+
+# Convert the date or timestamp column to a time series object #forecast from 10/2022 to 11/2023
+
+Dogecoin3_ts <- ts(dOgecoin2$Price, frequency = 252) # Use 'frequency' appropriate to your data (e.g., 12 for monthly data)
+##Dodgecoin3_ts <- ts(Dogecoin1$Vol., frequency = 252)
+```
+
+
+
+```{r Exploratory Data Analysis}
+
+###**Exploratory Data Analysis (EDA):** Perform an initial exploration of your time series data, including plotting the time series to check for trends, seasonality, and any obvious patterns.
+
+#Plot Time Series
+
+plot(Dogecoin3_ts, main = "Dogecoin Time Series Data", ylab = "Price", xlab = "Daily Frequency = 10/05/2022 - 11/05/2023", col = "blue")
+
+ggplot(data = Dogecoin3_ts, aes(x = row.names(Dogecoin3_ts) , y = Price)) +
+   geom_line() + 
+   labs(title = "Dogecoin Time Series", y = "Price", x = "Months") + theme(axis.text.x = element_text(angle = 80, hjust = .75))
+##Remove charaters from vol, cells
+#plot(Dodgecoin3_ts)
+
+#The data is visualized here to for the purpose of EDA. The data accounts for the movement of dogecoin for the past year to today's date, or the month of October 2022 to the month of November 2023.The y axis indicates the price range movement for Dogecoin, which ranges between 0 and 0.14. The Xaxis indicates a month frequency. 
+```
+
+```{r visualizing components}
+components.ts <- decompose(Dogecoin3_ts)
+plot(components.ts, col = "blue")
+plot(seasonal(components.ts), col = "purple", main = "seasonal", ylab = "price")
+plot(trendcycle(components.ts), col = "purple", main = "Residual Trend", ylab = "Price Residuals")
+##Here we get 4 components:
+
+##Observed – the actual data plot
+##Trend – the overall upward or downward movement of the data points
+##Seasonal – any monthly/yearly pattern of the data points
+##Random – unexplainable part of the data
+```
+```
+##The observed and trend visualizations indicate that dodgecoin price trends has been decreasing from October 2022 to November 2023, creating lower highs and lower lows. 
+##Seasonal changes - there are no significant seasonal changes in crypto price. In October 2022 reflects the highest point of dodgecoin for the year.
+
+```{r stationarity test}
+###**Stationarity Testing:** ARIMA models require stationary data. Conduct tests to check for stationarity (e.g., Augmented Dickey-Fuller test) and apply differencing if necessary.
+###Be sure to specify the data ranges for dates that you dropped.2 parts of the dataset was chopped. Mostly data from the year 2019 due to dogecoin spikes during COVID. The data needed to be chopped so thta the data set could be classified stationary, equating to a stationary p-value of 0.01. 
+# Test for stationarity
+
+adf.test <- adf.test(Dogecoin3_ts)
+
+if (adf.test$p.value < 0.05) {
+
+data_diff <- diff(Dogecoin3_ts)
+
+} else {
+
+data_diff <- Dogecoin3_ts
+
+}
+print(adf.test)
+
+#the adf test output indicated that the data set is stationary with a p-value of .01 using the method of an "Augmented Dickey-Fuller Test". The model indicates an adf parameter of lag order of 7. The statistical value output for the Dickery-Fuller method is -4.859477. I here by reject the null hypothesis that there is no effect and accept the alternative hypothesis indicating stationary.
+
+#TODO - WHAT IS DICKEERY FULLER?
+```
+
+```{r plot ACF and PACF}
+##**Identify ARIMA Parameters:** Determine the order of the ARIMA model (p, d, q) by examining the autocorrelation and partial autocorrelation plots (ACF and PACF). These plots can help you identify the appropriate values for p and q.
+
+# Plot ACF and PACF
+
+acf(data_diff)
+
+pacf(data_diff)
+
+```
+
+```{r pdq Identification}
+##**Fit the ARIMA Model:** Using the identified parameters, fit the ARIMA model to your differenced time series data.
+# Fit the ARIMA model (replace p, d, and q with your values)
+#Play around with adjusting the parameters here or (q)
+arima_model <- arima(data_diff, order = c(1, 2, 0)) #AIC -2775.16
+
+
+#check this, the AIC needs to be small.
+print(arima_model)
+
+
+##That which is listed above uses the ideal p d q with the smallest AIC, so Choosing to fit p: the order of autoregressive model, d: the degree of differencng, and q: the order of moving average model, or pdq which in this case is c(0,0,1)
+```
+
+```{r check the diagnostic}
+##**Diagnostic Checking:** Check the diagnostic statistics of the ARIMA model to ensure its adequacy. Use the `checkresiduals()` function to examine the residuals.
+
+checkresiduals(arima_model)
+
+```
+```
+
+``` {r forecasting}
+##**Forecasting:** You can now use your ARIMA model to make forecasts. Specify the number of periods you want to forecast and use the `forecast()` function.
+
+# Forecast for the next 'n' periods
+
+n <- 8 # Replace with the desired number of forecast periods
+
+forecast_values <- forecast(arima_model, h = n)
+
+```
+
+```{r visualization}
+##**Visualize the Forecast:** Plot the forecasted values along with the original time series to visualize the model's predictions
+
+# Plot the forecast
+
+plot(forecast_values, main = "ARIMA Forecast", xlab = "Time", ylab = "Residuals")
+```
+
+
+```{r ARIMA evaluation}
+#**Evaluate the Model:** Finally, assess the accuracy of your ARIMA model using appropriate metrics such as Mean Absolute Error (MAE), Mean Squared Estimate (MSE), or other
+#*
+#*
+mean(forecast_values$residuals^2)
+```
+
+```{r print residuals}
+predicted_values <- forecast_values$residuals
+print(predicted_values)
+
+```
+
