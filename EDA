@@ -4,16 +4,16 @@ author: "Akeem Shepherd"
 date: "10/7/2021"
 output: pdf_document
 ---
- A) Does age (medage16) appear to be associated with unemployment (pct_unemp)?
-### B) Does race (pct_white) appear to be assocaited with educational attainment (pct_BAdeg)?
-### C) Do these relationships appear to vary by population size (urban_class)?
-### 
-### To complete the HW 1) create an appropriate univariate plot to describe the distribution
-### of all 5 of the variables in the analysis, 2) Create a bivariate plot describing the
-### relationships of interest in A and B above, 3) Create a set of bivariate sub-plots for 
-### A and B faceted by population size.
-###
-###SUbmit your R-Script in markdown form (.rmd) as your Lab/HW 4 Assignment Deliverable.
+##Goal: Use EDA to show:
+      A) Does age (medage16) appear to be associated with unemployment (pct_unemp)?
+      B) Does race (pct_white) appear to be assocaited with educational attainment (pct_BAdeg)?
+      C) Do these relationships appear to vary by population size (urban_class)?
+
+##Steps I took:
+1) create an appropriate univariate plot to describe the distribution of all 5 of the variables in the analysis, 
+2) Create a bivariate plot describing the relationships of interest in A and B above,
+3) Create a set of bivariate sub-plots for A and B faceted by population size.
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 setwd("C:/Users/OWNER-PC/Downloads")
@@ -49,8 +49,7 @@ names(mydata)
 head(mydata)
 
 ```
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, cleaning}
 ####Clean and manage data
 for(i in 2:8){
   print(i)
@@ -118,14 +117,19 @@ table <- table(mydata$BA_binary)
 mydata$BA_binary_num <- ifelse(mydata$pct_BAdeg<mean(mydata$pct_BAdeg),
                            0,1)
 
+
 hist(mydata$BA_binary_num)
 
 hist(mydata$pct_white)
 
 barplot(table)
+#or
+gplot(data = table, aes(as.factor(x.variable), y = y.variable)) +
+    geom_bar(stat = "identity", fill = "blue) +
+    labs(y = "y.variable") +
+    ggtitle("title") + theme(plot.title = element_text(hjust = 0.5, face = "bold")) +
+    theme(axis.title.x = element_black(), axis.line = element_line(color = "color"), panel.border = element_blank(), panel.background = element_rect(size = 2, fill = "color")) +
+  goem_text(aes(label = paste("", y.variable), vjust = -0.1))
+   
 
-barplot(table, 
-        main="Frequency of Respondents Above/Below Avg. BA Degree Rate",
-        ylab = "Frequency", 
-        xlab = "Group")
 ```
