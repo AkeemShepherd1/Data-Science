@@ -1,4 +1,4 @@
-### Lab goal is to create a county level map of Quality of Life Index Ranking 
+### goal is to create a county level map of Quality of Life Index Ranking 
 ### from the Robert Wood Johnson Foundation 
 ### (obtained from here: https://www.countyhealthrankings.org/)
 
@@ -239,8 +239,7 @@ full_plot <- ggarrange(map7,
 full_plot
 
 
-### Please submit the result of the lab script in 
-### fulfillment of your assignment 7 requirement
+
 
 
 
