@@ -1,0 +1,88 @@
+#setwd()
+require(rvest)
+require(sf)
+require(data.table)
+require(ggplot2)
+
+loc <- getwd()
+
+######## Hypothetical Reserch Objective: Create a Map of Current Political Party Representation by NY
+######## City Council District given the information on this website: https://council.nyc.gov/districts/
+######## and a GIS file for the city council boundaries called "city_council_dist.shp"
+
+
+url <- 'https://council.nyc.gov/districts/'
+webpage <- read_html(url)
+
+district <- html_nodes(webpage, '.expanded strong')
+district <- html_text(district)
+View(district)
+
+borough <- html_nodes(webpage, '.sort-borough')
+borough <- html_text(borough)
+View(borough)
+
+party <- html_nodes(webpage, '.sort-party')
+party <- html_text(party)
+View(party)
+
+member <- html_nodes(webpage, '.sort-member strong')
+member <- html_text(member)
+View(member)
+
+neighborhoods <- html_nodes(webpage, '.neighborhoods')
+neighborhoods <- html_text(neighborhoods)
+View(neighborhoods)
+
+full_table <- as.data.frame(cbind(district,
+                                  member,
+                                  borough,
+                                  party,
+                                  neighborhoods))
+View(full_table)
+
+###using sf package here to read spatial data
+CD_map <- st_read(dsn = loc, 
+                  layer = "city_council_dist")
+
+head(CD_map)
+plot(CD_map)
+head(full_table)
+
+CD_map_data <- merge(CD_map,
+                     full_table,
+                     by.x = "coun_dist",
+                     by.y = "district")
+
+plot(CD_map_data)
+plot(CD_map_data["borough"])
+plot(CD_map_data["party"])
+
+plot(CD_map_data["party"],
+     main = "NYC City Council Party Representation")
+
+###This chunk is added later in the video
+
+#CD_map_data$party <- ifelse(CD_map_data$party != "Democrat" & CD_map_data$party != "Republican",
+#                            "Vacant",
+#                            CD_map_data$party)
+
+
+###Using ggplot to map city council party representation by district
+ggplot(CD_map_data) +
+  geom_sf(aes(fill = party)) +
+  scale_fill_manual(values = c("Democrat" = "#001CBB", "Republican" = "#BB0032")) +
+  ggtitle("NYC City Council Districts\n by Party Representation") +
+  theme(axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_blank(),
+        legend.position = c(0.2,0.75),
+        legend.title = element_blank())
+
+
+###For this week's Lab submission, use the EXPORT option in the plots
+###panel to save out the map (as PDF) of the NYC city council by party representation.
+
+
+
+
