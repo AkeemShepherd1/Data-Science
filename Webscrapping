@@ -80,8 +80,7 @@ ggplot(CD_map_data) +
         legend.title = element_blank())
 
 
-###For this week's Lab submission, use the EXPORT option in the plots
-###panel to save out the map (as PDF) of the NYC city council by party representation.
+
 
 
 
