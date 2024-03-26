@@ -1,5 +1,11 @@
+#Goals of the study:
+### Extract the variables to reporduce this analysis for the percent in poverty and the median income 
+### for counties in the state of CA.  Visualize the relationships across the same 2 category and 3 
+### category metro classficiation schemes and test to see if there are significant differences in the:
+### 1) % in poverty and 2) median income by those two classification schemes. Use the appropriate test based on the variable measurment.
+
 ---
-title: "Assignment 5 CA"
+title: "ttest and anova test using census api"
 author: "Akeem Shepherd"
 date: "10/31/2021"
 output: pdf_document
@@ -168,8 +174,7 @@ bivar3catAge<-ggplot(CA_df_metro,
 plot(bivar3catAge)
 
 
-#######################################################################################
-#######################################################################################
+
 ###Statistical Tests of Association
 ###Run a T-test to test for mean differences in racial diversity across 2 category Met classification
 
@@ -194,33 +199,8 @@ summary(ANOVA_ResultsAge)
 TukeyHSD(ANOVA_ResultsRace)
 TukeyHSD(ANOVA_ResultsAge)
 
-##########################################################################################################
-### Assignment #5 (In Rmarkdown):
-### Extract the variables to reporduce this analysis for the percent in poverty and the median income 
-### for counties in the state of CA.  Visualize the relationships across the same 2 category and 3 
-### category metro classficiation schemes and test to see if there are significant differences in the:
-### 1) % in poverty and 2) median income by those two classification schemes.  
-### 
-### Use the appropriate test based on the variable measurment.
-##########################################################################################################
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r cars}
-summary(cars)
-```
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
-```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
