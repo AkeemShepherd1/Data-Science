@@ -19,7 +19,7 @@ getwd()
 require(data.table)
 #install.packages("tidycensus")
 require(tidycensus)
-census_api_key("aa512886c5449a582d837da8d3a07af66a043fe5")
+census_api_key("census api key load here")
 
 census_data <- load_variables(2010, "sf1", cache=T)
 View(census_data)
